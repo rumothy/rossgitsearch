@@ -106,7 +106,7 @@
         let name = node.name;
 
         let stargazers = node.stargazers;
-        let stargazersCount = stargazers.totalCount;
+        let stargazerCount = stargazers.totalCount;
 
         let description = node.description;
         let url = node.url;
@@ -114,6 +114,7 @@
         let owner = node.owner;
         let avatarUrl = "";
         if (owner.avatarUrl) avatarUrl = owner.avatarUrl;
+        else avatarUrl = "https://placehold.it/64x64?text=None";
         let followerCount = 0;
         if (owner.followers) {
           let followers = owner.followers;
@@ -121,11 +122,30 @@
         }
 
         let li = document.createElement("li");
+
         let img = document.createElement("img");
         img.src = avatarUrl;
         img.width = 64;
         img.height = 64;
         li.appendChild(img);
+
+        let urlLink = document.createElement("a");
+        urlLink.href = url;
+        urlLink.innerText = url;
+        li.appendChild(urlLink);
+
+        let descElmnt = document.createElement("p");
+        descElmnt.innerText = description;
+        li.appendChild(descElmnt);
+
+        let stargazerElmnt = document.createElement("p");
+        stargazerElmnt.innerText = `stargazers: ${stargazerCount}`;
+        li.appendChild(stargazerElmnt);
+
+        let followerElmnt = document.createElement("p");
+        followerElmnt.innerText = `followers: ${followerCount}`;
+        li.appendChild(followerElmnt);
+
         ulResults.appendChild(li);
       });
     }
