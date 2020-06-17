@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <!-- <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css"
+      integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk"
+      crossorigin="anonymous"
+    /> -->
+  </head>
+  <body>
+    <input type="text" id="tbSearch" placeholder="search" />
+    <button id="btnSearch">Search</button>
+  </body>
+  <script>
+    const tbSearch = document.getElementById("tbSearch");
+    const btnSearch = document.getElementById("btnSearch");
+    const token = "d6b67fb8d3393535d8aaff538c34352dc7699223";
+    // const tok = token.split("").map((c) => parseInt(c));
+    btnSearch.onclick = () => {
+      console.log("btnSearch clicked");
+
+      let searchKey = tbSearch.value.trim();
+      console.log(`Searching for ${searchKey}...`);
+      queryv4(searchKey);
+    };
+
+    function queryv3(searchKey) {
+      fetch(`https://api.github.com/search/users?q=${searchKey}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          Authorization: `bearer ${token}`,
+        },
+      })
+        .then((r) => r.json())
+        .then((data) => console.log("data returned:", data));
+    }
+
+    function queryv4(searchKey) {
+      let query = `{ user(login: "${searchKey}") { url } }`;
+      fetch("https://api.github.com/graphql", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          Authorization: `bearer ${token}`,
+        },
+        body: JSON.stringify({ query }),
+      })
+        .then((r) => r.json())
+        .then((data) => console.log("data returned:", data));
+    }
+  </script>
+</html>
