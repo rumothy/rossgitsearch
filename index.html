@@ -16,41 +16,48 @@
     <button id="btnSearch">Search</button>
     <h3 id="lblResultCount"></h3>
     <ul id="ulResults"></ul>
+    <button id="btnPrev" disabled>&lt</button>
+    <button id="btnNext" disabled>&gt</button>
   </body>
   <script>
     const tbSearch = document.getElementById("tbSearch");
     const btnSearch = document.getElementById("btnSearch");
+    const btnPrev = document.getElementById("btnPrev");
+    const btnNext = document.getElementById("btnNext");
     const lblResultCount = document.getElementById("lblResultCount");
     const ulResults = document.getElementById("ulResults");
-
+    const pageInfo = {
+      endCursor: "",
+      hasNextPage: true,
+      hasPreviousPage: false,
+      startCursor: "",
+    };
     // TODO: move to backend
     const token = "";
     // const tok = token.split("").map((c) => parseInt(c));
-
+    let searchKey = "";
     btnSearch.onclick = () => {
-      console.log("btnSearch clicked");
-
-      let searchKey = tbSearch.value.trim();
-      console.log(`Searching for ${searchKey}...`);
-      queryv4(searchKey);
+      searchKey = tbSearch.value.trim();
+      let before = "";
+      let after = "first: 10";
+      queryv4(searchKey, before, after);
     };
 
-    function queryv3(searchKey) {
-      fetch(`https://api.github.com/search/users?q=${searchKey}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-          Authorization: `bearer ${token}`,
-        },
-      })
-        .then((r) => r.json())
-        .then((data) => console.log("data returned:", data));
-    }
+    btnPrev.onclick = () => {
+      let before = `before: "${pageInfo.startCursor}", last: 10`;
+      let after = "";
+      queryv4(searchKey, before, after);
+    };
 
-    function queryv4(searchKey) {
+    btnNext.onclick = () => {
+      let before = "";
+      let after = `first: 10, after: "${pageInfo.endCursor}"`;
+      queryv4(searchKey, before, after);
+    };
+
+    function queryv4(searchKey, before, after) {
       let query = `{ 
-            search(query: "ross", type: REPOSITORY, first: 10) {
+            search(query: "${searchKey}", type: REPOSITORY, ${before} ${after}) {
                 edges {
                     node {
                         ... on Repository {
@@ -74,8 +81,15 @@
                             }
                         }
                     }
+                    cursor
                 }
                 repositoryCount
+                pageInfo {
+                  endCursor
+                  hasNextPage
+                  hasPreviousPage
+                  startCursor  
+                }
             }  
         }`;
 
@@ -92,17 +106,29 @@
         .then((data) => {
           console.log("data returned:", data);
           present(data);
+
+          if (pageInfo.hasNextPage) btnNext.removeAttribute("disabled");
+          if (pageInfo.hasPreviousPage) btnPrev.removeAttribute("disabled");
         });
     }
 
     function present(data) {
       let dataData = data.data;
       let search = dataData.search;
+
+      let newPageInfo = search.pageInfo;
+      pageInfo.endCursor = newPageInfo.endCursor;
+      pageInfo.hasNextPage = newPageInfo.hasNextPage;
+      pageInfo.hasPreviousPage = newPageInfo.hasPreviousPage;
+      pageInfo.startCursor = newPageInfo.startCursor;
+
       let repositoryCount = search.repositoryCount;
       let edges = search.edges;
       lblResultCount.innerText = `${repositoryCount} repository results`;
+      ulResults.innerHTML = "";
       edges.forEach((edge) => {
         let node = edge.node;
+        let cursor = edge.cursor;
         let name = node.name;
 
         let stargazers = node.stargazers;
@@ -122,7 +148,7 @@
         }
 
         let li = document.createElement("li");
-
+        li.innerText = cursor;
         let img = document.createElement("img");
         img.src = avatarUrl;
         img.width = 64;
