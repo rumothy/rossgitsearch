@@ -16,6 +16,9 @@
               id
               name
               avatarUrl
+              followers {
+                totalCount
+              }
             }
           }
         }

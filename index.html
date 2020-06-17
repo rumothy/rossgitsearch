@@ -14,12 +14,19 @@
   <body>
     <input type="text" id="tbSearch" placeholder="search" />
     <button id="btnSearch">Search</button>
+    <h3 id="lblResultCount"></h3>
+    <ul id="ulResults"></ul>
   </body>
   <script>
     const tbSearch = document.getElementById("tbSearch");
     const btnSearch = document.getElementById("btnSearch");
-    const token = "d6b67fb8d3393535d8aaff538c34352dc7699223";
+    const lblResultCount = document.getElementById("lblResultCount");
+    const ulResults = document.getElementById("ulResults");
+
+    // TODO: move to backend
+    const token = "";
     // const tok = token.split("").map((c) => parseInt(c));
+
     btnSearch.onclick = () => {
       console.log("btnSearch clicked");
 
@@ -42,7 +49,36 @@
     }
 
     function queryv4(searchKey) {
-      let query = `{ user(login: "${searchKey}") { url } }`;
+      let query = `{ 
+            search(query: "ross", type: REPOSITORY, first: 10) {
+                edges {
+                    node {
+                        ... on Repository {
+                        id
+                        name
+                        stargazers {
+                            totalCount
+                        }
+                        description
+                        url
+                            owner {
+                                id
+                                ... on User {
+                                    id
+                                    name
+                                    avatarUrl
+                                    followers {
+                                        totalCount
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                repositoryCount
+            }  
+        }`;
+
       fetch("https://api.github.com/graphql", {
         method: "POST",
         headers: {
@@ -53,7 +89,45 @@
         body: JSON.stringify({ query }),
       })
         .then((r) => r.json())
-        .then((data) => console.log("data returned:", data));
+        .then((data) => {
+          console.log("data returned:", data);
+          present(data);
+        });
+    }
+
+    function present(data) {
+      let dataData = data.data;
+      let search = dataData.search;
+      let repositoryCount = search.repositoryCount;
+      let edges = search.edges;
+      lblResultCount.innerText = `${repositoryCount} repository results`;
+      edges.forEach((edge) => {
+        let node = edge.node;
+        let name = node.name;
+
+        let stargazers = node.stargazers;
+        let stargazersCount = stargazers.totalCount;
+
+        let description = node.description;
+        let url = node.url;
+
+        let owner = node.owner;
+        let avatarUrl = "";
+        if (owner.avatarUrl) avatarUrl = owner.avatarUrl;
+        let followerCount = 0;
+        if (owner.followers) {
+          let followers = owner.followers;
+          followerCount = followers.totalCount;
+        }
+
+        let li = document.createElement("li");
+        let img = document.createElement("img");
+        img.src = avatarUrl;
+        img.width = 64;
+        img.height = 64;
+        li.appendChild(img);
+        ulResults.appendChild(li);
+      });
     }
   </script>
 </html>
