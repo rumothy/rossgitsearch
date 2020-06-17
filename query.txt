@@ -1,0 +1,26 @@
+{
+  search(query: "ross", type: REPOSITORY, first: 10) {
+    edges {
+      node {
+        ... on Repository {
+          id
+          name
+          stargazers {
+            totalCount
+          }
+          description
+          url
+          owner {
+            id
+            ... on User {
+              id
+              name
+              avatarUrl
+            }
+          }
+        }
+      }
+    }
+    repositoryCount
+  }
+}
