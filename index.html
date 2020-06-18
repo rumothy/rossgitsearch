@@ -33,7 +33,7 @@
       startCursor: "",
     };
     // TODO: move to backend
-    const token = "";
+    const token = "82ae94fe03cead7846edad526200ba7836d10392";
     // const tok = token.split("").map((c) => parseInt(c));
     let searchKey = "";
     btnSearch.onclick = () => {
@@ -98,7 +98,7 @@
         headers: {
           "Content-Type": "application/json",
           Accept: "application/json",
-          Authorization: `bearer ${token}`,
+          Authorization: `bearer ${decrypt(token)}`,
         },
         body: JSON.stringify({ query }),
       })
@@ -148,7 +148,7 @@
         }
 
         let li = document.createElement("li");
-        li.innerText = cursor;
+        //li.innerText = cursor;
         let img = document.createElement("img");
         img.src = avatarUrl;
         img.width = 64;
@@ -174,6 +174,15 @@
 
         ulResults.appendChild(li);
       });
+    }
+
+    function decrypt(token) {
+      const tokenArray = token.split("");
+      const firstPlusOne = parseInt(tokenArray[0]) + 1;
+      const lastPlusOne = parseInt(tokenArray[tokenArray.length - 1]) + 1;
+      tokenArray[0] = firstPlusOne.toString();
+      tokenArray[tokenArray.length - 1] = lastPlusOne.toString();
+      return tokenArray.join("");
     }
   </script>
 </html>
